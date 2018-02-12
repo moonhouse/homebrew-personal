@@ -97,21 +97,24 @@ class Sqlite < Formula
                      *ENV.cflags.to_s.split
       lib.install "libsqlitefunctions.dylib"
     end
+    
+    if build.with? "regexp"
+      buildpath.install resource("regexp")
+      ENV.append_path "PKG_CONFIG_PATH", lib + "pkgconfig"
+      ENV.append "CFLAGS", `pkg-config --cflags sqlite3 libpcre`.chomp.strip
+      ENV.append "LDFLAGS", `pkg-config --libs libpcre`.chomp.strip
+      system ENV.cc, "-fno-common",
+                    "-dynamiclib",
+                    "pcre.c",
+                    "-o", "libsqlite3-regexp.dylib",
+                    *(ENV.cflags.split + ENV.ldflags.split)
+      lib.install "libsqlite3-regexp.dylib"
+    end
+    
     doc.install resource("docs") if build.with? "docs"
   end
   
-  if build.with? "regexp"
-    buildpath.install resource("regexp")
-    ENV.append_path "PKG_CONFIG_PATH", lib + "pkgconfig"
-    ENV.append "CFLAGS", `pkg-config --cflags sqlite3 libpcre`.chomp.strip
-    ENV.append "LDFLAGS", `pkg-config --libs libpcre`.chomp.strip
-    system ENV.cc, "-fno-common",
-                  "-dynamiclib",
-                  "pcre.c",
-                  "-o", "libsqlite3-regexp.dylib",
-                  *(ENV.cflags.split + ENV.ldflags.split)
-    lib.install "libsqlite3-regexp.dylib"
-  end
+
 
   def caveats
   
